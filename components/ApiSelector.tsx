@@ -68,6 +68,19 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
     onApiChange?.(selectedApi);
   }, [selectedApi, onApiChange]);
 
+  // 监听导航栏API按钮点击
+  useEffect(() => {
+    const handleTriggerClick = () => {
+      setIsOpen(true);
+    };
+
+    const triggerButton = document.getElementById('api-selector-trigger');
+    if (triggerButton) {
+      triggerButton.addEventListener('click', handleTriggerClick);
+      return () => triggerButton.removeEventListener('click', handleTriggerClick);
+    }
+  }, []);
+
   const handleApiSelect = (api: ApiConfig) => {
     if (api.id === 'custom') {
       setSelectedApi(customConfig);
@@ -105,6 +118,14 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
     }
   };
 
+  const handleCustomUrlChange = (newUrl: string) => {
+    if (selectedApi.id === 'custom') {
+      const updatedApi = { ...selectedApi, baseUrl: newUrl };
+      setSelectedApi(updatedApi);
+      setCustomConfig(updatedApi);
+    }
+  };
+
   const getStatusColor = (api: ApiConfig) => {
     if (api.id === selectedApi.id) return 'text-green-500';
     if (api.type === 'official' && !api.apiKey) return 'text-yellow-500';
@@ -119,27 +140,21 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
 
   return (
     <>
-      {/* API选择器按钮 */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold"
-        title="API 配置"
-      >
-        <span className="anime-icon">🎯</span>
-        <span className="hidden sm:inline">API</span>
-      </button>
-
       {/* 侧边栏面板 */}
       {isOpen && (
         <>
           {/* 背景遮罩 */}
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="fixed inset-0 bg-black bg-opacity-50"
+            style={{zIndex: 99998}}
             onClick={() => setIsOpen(false)}
           />
           
           {/* 侧边栏内容 */}
-          <div className="fixed top-0 right-0 h-full w-96 anime-card z-50 overflow-y-auto">
+          <div 
+            className="fixed top-0 right-0 h-full w-96 anime-card overflow-y-auto"
+            style={{zIndex: 99999}}
+          >
             <div className="p-6">
               {/* 头部 */}
               <div className="flex items-center justify-between mb-6">
@@ -165,14 +180,46 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                 <div className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded mt-2">
                   🌐 {selectedApi.baseUrl}
                 </div>
+                {/* 当前API的密钥输入 */}
                 {selectedApi.id === 'official' && (
-                  <input
-                    type="password"
-                    placeholder="🔑 输入你的 Google API 密钥"
-                    value={selectedApi.apiKey}
-                    onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
-                    className="anime-input w-full mt-3"
-                  />
+                  <div className="mt-3">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">🔑 API 密钥</label>
+                    <input
+                      type="password"
+                      placeholder="输入你的 Google API 密钥"
+                      value={selectedApi.apiKey}
+                      onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
+                      className="anime-input w-full"
+                    />
+                  </div>
+                )}
+                {selectedApi.id === 'custom' && (
+                  <div className="mt-3 space-y-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">🌐 API URL</label>
+                      <input
+                        type="text"
+                        placeholder="https://api.example.com"
+                        value={selectedApi.baseUrl}
+                        onChange={(e) => handleCustomUrlChange(e.target.value)}
+                        className="anime-input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">🔑 API 密钥</label>
+                      <input
+                        type="password"
+                        placeholder="输入API密钥"
+                        value={selectedApi.apiKey}
+                        onChange={(e) => {
+                          const updatedApi = { ...selectedApi, apiKey: e.target.value };
+                          setSelectedApi(updatedApi);
+                          setCustomConfig(updatedApi);
+                        }}
+                        className="anime-input w-full"
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
 
@@ -267,7 +314,7 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
 
       {/* API Key 输入弹窗 */}
       {showApiKeyInput && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{zIndex: 100000}}>
           <div className="anime-card p-8 max-w-md w-full mx-4">
             <h3 className="anime-title text-xl font-bold mb-4">🔑 输入 API 密钥</h3>
             <p className="text-sm text-gray-600 mb-4">

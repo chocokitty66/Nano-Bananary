@@ -436,6 +436,8 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen text-[var(--text-primary)] font-sans">
+      {/* API选择器 - 放在最外层以覆盖整个页面 */}
+      <ApiSelector onApiChange={setCurrentApiConfig} />
       {/* 二次元粒子背景 */}
       <div className="anime-particles">
         <div className="anime-particle" style={{left: '10%'}}></div>
@@ -462,7 +464,14 @@ const App: React.FC = () => {
               <span className="anime-icon">📚</span>
               <span className="hidden sm:inline">{t('app.history')}</span>
             </button>
-            <ApiSelector onApiChange={setCurrentApiConfig} />
+            <button
+              onClick={() => {/* 这里会被ApiSelector组件处理 */}}
+              className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold"
+              id="api-selector-trigger"
+            >
+              <span className="anime-icon">🔧</span>
+              <span className="hidden sm:inline">API</span>
+            </button>
             <LanguageSwitcher />
             <ThemeSwitcher />
           </div>
