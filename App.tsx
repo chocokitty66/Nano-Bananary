@@ -436,18 +436,19 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans">
-      <header className="bg-[var(--bg-card-alpha)] backdrop-blur-lg sticky top-0 z-20 p-4 border-b border-[var(--border-primary)]">
+      <header className="glass-effect sticky top-0 z-20 p-4 border-b border-[var(--border-primary)]">
         <div className="container mx-auto flex justify-between items-center">
           <h1 
-            className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] cursor-pointer" 
+            className="text-2xl font-bold tracking-tight gradient-text floating cursor-pointer micro-interaction" 
             onClick={handleResetApp}
+            data-text={t('app.title')}
           >
             {t('app.title')}
           </h1>
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={toggleHistoryPanel}
-              className="flex items-center gap-2 py-2 px-3 text-sm font-semibold text-[var(--text-primary)] bg-[rgba(107,114,128,0.2)] rounded-md hover:bg-[rgba(107,114,128,0.4)] transition-colors duration-200"
+              className="flex items-center gap-2 py-2 px-3 text-sm font-semibold text-[var(--text-primary)] glass-effect rounded-xl micro-interaction hover:pulse-glow transition-all duration-300"
               aria-label="Toggle generation history"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -477,7 +478,7 @@ const App: React.FC = () => {
             <div className="mb-8">
               <button
                 onClick={handleBackToSelection}
-                className="flex items-center gap-2 text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] transition-colors duration-200 py-2 px-4 rounded-lg hover:bg-[rgba(107,114,128,0.1)]"
+                className="flex items-center gap-2 text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] glass-effect py-2 px-4 rounded-xl micro-interaction transition-all duration-300"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -488,7 +489,7 @@ const App: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Input Column */}
-              <div className="flex flex-col gap-6 p-6 bg-[var(--bg-card-alpha)] backdrop-blur-lg rounded-xl border border-[var(--border-primary)] shadow-2xl shadow-black/20">
+              <div className="flex flex-col gap-6 p-6 premium-card card-stack premium-shadow">
                 <div>
                   <div className="mb-4">
                     <h2 className="text-xl font-semibold mb-1 text-[var(--accent-primary)] flex items-center gap-3">
@@ -517,11 +518,11 @@ const App: React.FC = () => {
                    <button
                     onClick={handleGenerate}
                     disabled={isGenerateDisabled}
-                    className="w-full mt-6 py-3 px-4 bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-[var(--text-on-accent)] font-semibold rounded-lg shadow-lg shadow-[var(--accent-shadow)] hover:from-[var(--accent-primary-hover)] hover:to-[var(--accent-secondary-hover)] disabled:bg-[var(--bg-disabled)] disabled:from-[var(--bg-disabled)] disabled:to-[var(--bg-disabled)] disabled:text-[var(--text-disabled)] disabled:shadow-none disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+                    className="w-full mt-6 glow-button disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="apple-loading -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -540,7 +541,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Output Column */}
-              <div className="flex flex-col p-6 bg-[var(--bg-card-alpha)] backdrop-blur-lg rounded-xl border border-[var(--border-primary)] shadow-2xl shadow-black/20">
+              <div className="flex flex-col p-6 premium-card premium-shadow">
                 <h2 className="text-xl font-semibold mb-4 text-[var(--accent-primary)] self-start">{t('app.result')}</h2>
                 {isLoading && <div className="flex-grow flex items-center justify-center"><LoadingSpinner message={loadingMessage} /></div>}
                 {error && <div className="flex-grow flex items-center justify-center w-full"><ErrorMessage message={error} /></div>}
