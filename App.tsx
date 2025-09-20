@@ -358,17 +358,17 @@ const App: React.FC = () => {
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder={t('transformations.video.promptPlaceholder')}
             rows={4}
-            className="w-full mt-2 p-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] transition-colors placeholder-[var(--text-tertiary)]"
+            className="anime-input w-full mt-2"
           />
           <div className="mt-4">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{t('transformations.video.aspectRatio')}</h3>
+            <h3 className="text-sm font-semibold text-blue-600 mb-2">{t('transformations.video.aspectRatio')}</h3>
             <div className="grid grid-cols-2 gap-2">
               {(['16:9', '9:16'] as const).map(ratio => (
                 <button
                   key={ratio}
                   onClick={() => setAspectRatio(ratio)}
-                  className={`py-2 px-3 text-sm font-semibold rounded-md transition-colors duration-200 ${
-                    aspectRatio === ratio ? 'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-[var(--text-on-accent)]' : 'bg-[rgba(107,114,128,0.2)] hover:bg-[rgba(107,114,128,0.4)]'
+                  className={`anime-button py-2 px-3 text-sm ${
+                    aspectRatio === ratio ? 'rainbow-glow' : ''
                   }`}
                 >
                   {t(ratio === '16:9' ? 'transformations.video.landscape' : 'transformations.video.portrait')}
@@ -377,7 +377,7 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="mt-4">
-             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2">{t('transformations.effects.customPrompt.uploader2Title')}</h3>
+             <h3 className="text-sm font-semibold text-blue-600 mb-2">{t('transformations.effects.customPrompt.uploader2Title')}</h3>
             <ImageEditorCanvas
                 onImageSelect={handlePrimaryImageSelect}
                 initialImageUrl={primaryImageUrl}
@@ -420,11 +420,11 @@ const App: React.FC = () => {
           <div className="mt-4">
             <button
               onClick={toggleMaskTool}
-              className={`w-full flex items-center justify-center gap-2 py-2 px-3 text-sm font-semibold rounded-md transition-colors duration-200 ${
-                activeTool === 'mask' ? 'bg-gradient-to-r from-[var(--accent-primary)] to-[var(--accent-secondary)] text-[var(--text-on-accent)]' : 'bg-[rgba(107,114,128,0.2)] hover:bg-[rgba(107,114,128,0.4)]'
+              className={`anime-button w-full flex items-center justify-center gap-2 ${
+                activeTool === 'mask' ? 'rainbow-glow' : ''
               }`}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" /></svg>
+              <span className="anime-icon">🎨</span>
               <span>{t('imageEditor.drawMask')}</span>
             </button>
           </div>
@@ -435,25 +435,31 @@ const App: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans">
-      <header className="glass-effect sticky top-0 z-20 p-4 border-b border-[var(--border-primary)]">
+    <div className="min-h-screen text-[var(--text-primary)] font-sans">
+      {/* 二次元粒子背景 */}
+      <div className="anime-particles">
+        <div className="anime-particle" style={{left: '10%'}}></div>
+        <div className="anime-particle" style={{left: '30%'}}></div>
+        <div className="anime-particle" style={{left: '50%'}}></div>
+        <div className="anime-particle" style={{left: '70%'}}></div>
+        <div className="anime-particle" style={{left: '90%'}}></div>
+      </div>
+
+      <header className="anime-card sticky top-0 z-20 p-4 border-b-2 border-blue-200">
         <div className="container mx-auto flex justify-between items-center">
           <h1 
-            className="text-2xl font-bold tracking-tight gradient-text floating cursor-pointer micro-interaction" 
+            className="anime-title text-3xl font-bold tracking-tight cursor-pointer heartbeat" 
             onClick={handleResetApp}
-            data-text={t('app.title')}
           >
-            {t('app.title')}
+            🍌 {t('app.title')} ✨
           </h1>
           <div className="flex items-center gap-2 md:gap-4">
             <button
               onClick={toggleHistoryPanel}
-              className="flex items-center gap-2 py-2 px-3 text-sm font-semibold text-[var(--text-primary)] glass-effect rounded-xl micro-interaction hover:pulse-glow transition-all duration-300"
+              className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold"
               aria-label="Toggle generation history"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
+              <span className="anime-icon">📚</span>
               <span className="hidden sm:inline">{t('app.history')}</span>
             </button>
             <ApiSelector onApiChange={setCurrentApiConfig} />
@@ -478,28 +484,26 @@ const App: React.FC = () => {
             <div className="mb-8">
               <button
                 onClick={handleBackToSelection}
-                className="flex items-center gap-2 text-[var(--accent-primary)] hover:text-[var(--accent-primary-hover)] glass-effect py-2 px-4 rounded-xl micro-interaction transition-all duration-300"
+                className="anime-button flex items-center gap-2 py-2 px-4"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                </svg>
+                <span className="anime-icon">🔙</span>
                 {t('app.chooseAnotherEffect')}
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Input Column */}
-              <div className="flex flex-col gap-6 p-6 premium-card card-stack premium-shadow">
+              <div className="flex flex-col gap-6 p-6 anime-card">
                 <div>
                   <div className="mb-4">
-                    <h2 className="text-xl font-semibold mb-1 text-[var(--accent-primary)] flex items-center gap-3">
-                      <span className="text-3xl">{selectedTransformation.emoji}</span>
+                    <h2 className="anime-title text-xl font-semibold mb-1 flex items-center gap-3">
+                      <span className="text-3xl anime-icon">{selectedTransformation.emoji}</span>
                       {t(selectedTransformation.titleKey)}
                     </h2>
                     {selectedTransformation.prompt !== 'CUSTOM' ? (
-                       <p className="text-[var(--text-secondary)]">{t(selectedTransformation.descriptionKey)}</p>
+                       <p className="text-blue-600">{t(selectedTransformation.descriptionKey)}</p>
                     ) : (
-                      !selectedTransformation.isVideo && <p className="text-[var(--text-secondary)]">{t(selectedTransformation.descriptionKey)}</p>
+                      !selectedTransformation.isVideo && <p className="text-blue-600">{t(selectedTransformation.descriptionKey)}</p>
                     )}
                   </div>
                   
@@ -509,7 +513,7 @@ const App: React.FC = () => {
                         onChange={(e) => setCustomPrompt(e.target.value)}
                         placeholder="e.g., 'make the sky a vibrant sunset' or 'add a small red boat on the water'"
                         rows={3}
-                        className="w-full -mt-2 mb-4 p-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg focus:ring-2 focus:ring-[var(--accent-primary)] focus:border-[var(--accent-primary)] transition-colors placeholder-[var(--text-tertiary)]"
+                        className="anime-input w-full -mt-2 mb-4"
                     />
                   )}
                   
@@ -518,11 +522,11 @@ const App: React.FC = () => {
                    <button
                     onClick={handleGenerate}
                     disabled={isGenerateDisabled}
-                    className="w-full mt-6 glow-button disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2"
+                    className="anime-button w-full mt-6 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isLoading ? (
                       <>
-                        <svg className="apple-loading -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg className="anime-loading -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -530,9 +534,7 @@ const App: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
+                        <span className="anime-icon">✨</span>
                         <span>{t('app.generateImage')}</span>
                       </>
                     )}
@@ -541,8 +543,8 @@ const App: React.FC = () => {
               </div>
 
               {/* Output Column */}
-              <div className="flex flex-col p-6 premium-card premium-shadow">
-                <h2 className="text-xl font-semibold mb-4 text-[var(--accent-primary)] self-start">{t('app.result')}</h2>
+              <div className="flex flex-col p-6 anime-card">
+                <h2 className="anime-title text-xl font-semibold mb-4 self-start">{t('app.result')}</h2>
                 {isLoading && <div className="flex-grow flex items-center justify-center"><LoadingSpinner message={loadingMessage} /></div>}
                 {error && <div className="flex-grow flex items-center justify-center w-full"><ErrorMessage message={error} /></div>}
                 {!isLoading && !error && generatedContent && (
@@ -554,10 +556,8 @@ const App: React.FC = () => {
                     />
                 )}
                 {!isLoading && !error && !generatedContent && (
-                  <div className="flex-grow flex flex-col items-center justify-center text-center text-[var(--text-tertiary)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+                  <div className="flex-grow flex flex-col items-center justify-center text-center text-blue-400">
+                    <span className="anime-icon text-6xl mb-4">🎨</span>
                     <p className="mt-2">{t('app.yourImageWillAppear')}</p>
                   </div>
                 )}
