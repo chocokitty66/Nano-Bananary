@@ -1,5 +1,17 @@
-import { GoogleGenAI, Modality } from "@google/genai";
 import type { GeneratedContent } from '../types';
+
+// 动态导入GoogleGenAI，避免在模块加载时就初始化
+let GoogleGenAI: any = null;
+let Modality: any = null;
+
+const loadGoogleGenAI = async () => {
+  if (!GoogleGenAI) {
+    const module = await import("@google/genai");
+    GoogleGenAI = module.GoogleGenAI;
+    Modality = module.Modality;
+  }
+  return { GoogleGenAI, Modality };
+};
 
 // 获取当前 API 配置
 const getCurrentApiConfig = () => {
@@ -31,15 +43,16 @@ const isCustomEndpoint = () => {
   return config.baseUrl && !config.baseUrl.includes('googleapis.com');
 };
 
-let ai: GoogleGenAI | null = null;
+let ai: any = null;
 
 // 初始化 AI 实例
-const initializeAI = () => {
+const initializeAI = async () => {
   const config = getCurrentApiConfig();
   console.log('Using API endpoint:', config.baseUrl);
   console.log('Using API key:', config.apiKey ? config.apiKey.substring(0, 10) + '...' : 'none');
   
   if (config.type === 'official' && config.apiKey) {
+    const { GoogleGenAI } = await loadGoogleGenAI();
     ai = new GoogleGenAI(config.apiKey);
   } else {
     ai = null; // 不使用官方API时不初始化
@@ -197,11 +210,14 @@ export async function editImage(
   }
   
   // 重新初始化AI实例以使用最新配置
-  initializeAI();
+  await initializeAI();
   
   if (!ai) {
     throw new Error('AI实例初始化失败，请检查API密钥配置');
   }
+
+  // 动态加载Modality
+  const { Modality } = await loadGoogleGenAI();
 
   // 原有的 Google GenAI 逻辑
   try {
@@ -317,7 +333,7 @@ export async function generateVideo(
     }
     
     // 重新初始化AI实例以使用最新配置
-    initializeAI();
+    await initializeAI();
     
     if (!ai) {
         throw new Error('AI实例初始化失败，请检查API密钥配置');
