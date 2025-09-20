@@ -1,10 +1,6 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import type { GeneratedContent } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable is not set.");
-}
-
 // 获取当前 API 配置
 const getCurrentApiConfig = () => {
   try {
@@ -12,8 +8,8 @@ const getCurrentApiConfig = () => {
     if (saved) {
       const config = JSON.parse(saved);
       return {
-        baseUrl: config.baseUrl || process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
-        apiKey: config.apiKey || process.env.GEMINI_API_KEY || 'sk-chocokitty',
+        baseUrl: config.baseUrl || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
+        apiKey: config.apiKey || 'sk-chocokitty',
         type: config.type || 'proxy'
       };
     }
@@ -23,8 +19,8 @@ const getCurrentApiConfig = () => {
   
   // 默认配置
   return {
-    baseUrl: process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
-    apiKey: process.env.GEMINI_API_KEY || 'sk-chocokitty',
+    baseUrl: 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
+    apiKey: 'sk-chocokitty',
     type: 'proxy'
   };
 };
@@ -35,16 +31,17 @@ const isCustomEndpoint = () => {
   return config.baseUrl && !config.baseUrl.includes('googleapis.com');
 };
 
-const API_KEY = process.env.API_KEY;
-const BASE_URL = process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com';
-
 let ai: GoogleGenAI;
 
 // 初始化 AI 实例
 const initializeAI = () => {
   const config = getCurrentApiConfig();
   console.log('Using API endpoint:', config.baseUrl);
-  ai = new GoogleGenAI({ apiKey: config.apiKey });
+  console.log('Using API key:', config.apiKey ? config.apiKey.substring(0, 10) + '...' : 'none');
+  
+  if (config.type === 'official' && config.apiKey) {
+    ai = new GoogleGenAI(config.apiKey);
+  }
 };
 
 initializeAI();
@@ -97,19 +94,42 @@ async function callCustomGeminiAPI(
     };
 
     const config = getCurrentApiConfig();
+    console.log('Making API request to:', `${config.baseUrl}/v1beta/models/gemini-2.5-flash-image-preview:generateContent`);
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    // 根据API类型设置不同的认证头
+    if (config.type === 'official') {
+      headers['x-goog-api-key'] = config.apiKey;
+    } else {
+      // 代理服务使用Authorization头
+      headers['Authorization'] = `Bearer ${config.apiKey}`;
+    }
+
     const response = await fetch(`${config.baseUrl}/v1beta/models/gemini-2.5-flash-image-preview:generateContent`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${config.apiKey}`,
-        'x-goog-api-key': config.apiKey,
-      },
+      headers,
       body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`API request failed: ${response.status} ${response.statusText} - ${errorText}`);
+      console.error('API Error Response:', errorText);
+      
+      let errorMessage = `API request failed: ${response.status} - ${response.statusText}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error && errorData.error.message) {
+          errorMessage = errorData.error.message;
+        }
+      } catch (e) {
+        // 如果无法解析错误响应，使用原始错误文本
+        errorMessage = `API request failed: ${response.status} - ${errorText}`;
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const data = await response.json();
@@ -161,10 +181,20 @@ export async function editImage(
     maskBase64: string | null,
     secondaryImage: { base64: string; mimeType: string } | null
 ): Promise<GeneratedContent> {
-  // 如果使用自定义端点，使用自定义 API 调用
-  if (isCustomEndpoint()) {
+  const config = getCurrentApiConfig();
+  
+  // 如果使用自定义端点或代理，使用自定义 API 调用
+  if (config.type !== 'official' || isCustomEndpoint()) {
     return callCustomGeminiAPI(base64ImageData, mimeType, prompt, maskBase64, secondaryImage);
   }
+  
+  // 确保官方API有有效的密钥
+  if (!config.apiKey || !config.apiKey.trim()) {
+    throw new Error('请先配置Google API密钥才能使用官方API服务');
+  }
+  
+  // 重新初始化AI实例以使用最新配置
+  initializeAI();
 
   // 原有的 Google GenAI 逻辑
   try {
@@ -257,7 +287,7 @@ export async function editImage(
         } catch (e) {}
         throw new Error(errorMessage);
     }
-    throw new Error("An unknown error occurred while communicating with the API.");
+    throw new Error(String(error) || "An unknown error occurred while communicating with the API.");
   }
 }
 
@@ -267,10 +297,20 @@ export async function generateVideo(
     aspectRatio: '16:9' | '9:16',
     onProgress: (message: string) => void
 ): Promise<string> {
-    // 如果使用自定义端点，使用自定义视频 API
-    if (isCustomEndpoint()) {
+    const config = getCurrentApiConfig();
+    
+    // 如果使用自定义端点或代理，使用自定义视频 API
+    if (config.type !== 'official' || isCustomEndpoint()) {
         return callCustomVideoAPI(prompt, image, aspectRatio, onProgress);
     }
+    
+    // 确保官方API有有效的密钥
+    if (!config.apiKey || !config.apiKey.trim()) {
+        throw new Error('请先配置Google API密钥才能使用官方API服务');
+    }
+    
+    // 重新初始化AI实例以使用最新配置
+    initializeAI();
 
     // 原有的 Google GenAI 视频生成逻辑
     try {
@@ -310,7 +350,7 @@ export async function generateVideo(
             throw new Error("Video generation completed, but no download link was found.");
         }
 
-        return `${downloadLink}&key=${API_KEY}`;
+        return `${downloadLink}&key=${config.apiKey}`;
 
     } catch (error) {
         console.error("Error calling Video Generation API:", error);
@@ -324,7 +364,7 @@ export async function generateVideo(
             } catch (e) {}
             throw new Error(errorMessage);
         }
-        throw new Error("An unknown error occurred during video generation.");
+        throw new Error(String(error) || "An unknown error occurred during video generation.");
     }
 }
 
@@ -353,13 +393,20 @@ async function callCustomVideoAPI(
       };
     }
 
-    const response = await fetch(`${BASE_URL}/v1beta/models/veo-2.0-generate-001:generateVideos`, {
+    const config = getCurrentApiConfig();
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (config.type === 'official') {
+      headers['x-goog-api-key'] = config.apiKey;
+    } else {
+      headers['Authorization'] = `Bearer ${config.apiKey}`;
+    }
+
+    const response = await fetch(`${config.baseUrl}/v1beta/models/veo-2.0-generate-001:generateVideos`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'x-goog-api-key': API_KEY,
-      },
+      headers,
       body: JSON.stringify(requestBody),
     });
 
@@ -377,11 +424,16 @@ async function callCustomVideoAPI(
     while (!operation.done) {
       await new Promise(resolve => setTimeout(resolve, 10000));
       
-      const pollResponse = await fetch(`${BASE_URL}/v1beta/operations/${operation.name}`, {
-        headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'x-goog-api-key': API_KEY,
-        },
+      const pollHeaders: Record<string, string> = {};
+      
+      if (config.type === 'official') {
+        pollHeaders['x-goog-api-key'] = config.apiKey;
+      } else {
+        pollHeaders['Authorization'] = `Bearer ${config.apiKey}`;
+      }
+
+      const pollResponse = await fetch(`${config.baseUrl}/v1beta/operations/${operation.name}`, {
+        headers: pollHeaders,
       });
 
       if (pollResponse.ok) {
@@ -399,13 +451,13 @@ async function callCustomVideoAPI(
       throw new Error("Video generation completed, but no download link was found.");
     }
 
-    return `${downloadLink}&key=${API_KEY}`;
+    return config.type === 'official' ? `${downloadLink}&key=${config.apiKey}` : downloadLink;
 
   } catch (error) {
     console.error("Error calling custom Video Generation API:", error);
     if (error instanceof Error) {
       throw new Error(error.message);
     }
-    throw new Error("An unknown error occurred during video generation.");
+    throw new Error(String(error) || "An unknown error occurred during video generation.");
   }
 }
