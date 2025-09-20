@@ -185,12 +185,15 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                   <div className="mt-3">
                     <label className="block text-sm font-medium text-gray-700 mb-1">🔑 API 密钥</label>
                     <input
-                      type="password"
-                      placeholder="输入你的 Google API 密钥"
+                      type="text"
+                      placeholder="输入你的 Google API 密钥 (例: AIza...)"
                       value={selectedApi.apiKey}
                       onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
                       className="anime-input w-full"
                     />
+                    <p className="text-xs text-blue-600 mt-1">
+                      💡 没有API密钥？<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">点击这里获取免费的Google API密钥</a>
+                    </p>
                   </div>
                 )}
                 {selectedApi.id === 'custom' && (
@@ -260,7 +263,7 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                           className="anime-input w-full"
                         />
                         <input
-                          type="password"
+                          type="text"
                           placeholder="🔑 API 密钥"
                           value={customConfig.apiKey}
                           onChange={(e) => handleCustomConfigChange('apiKey', e.target.value)}
@@ -282,6 +285,10 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                         {api.type === 'official' && api.id !== selectedApi.id && (
                           <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
                             ⚠️ 需要配置 API 密钥才能使用
+                            <br />
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-800">
+                              🔗 获取免费Google API密钥
+                            </a>
                           </div>
                         )}
                         {api.type === 'proxy' && (
@@ -306,6 +313,29 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                     <li>🔒 所有配置都保存在本地，确保隐私安全</li>
                   </ul>
                 </div>
+                
+                {/* Google API Key 获取链接 */}
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center mb-2">
+                    <span className="anime-icon mr-2">🔑</span>
+                    <span className="text-sm font-semibold text-blue-700">获取 Google API 密钥</span>
+                  </div>
+                  <p className="text-xs text-blue-600 mb-2">
+                    使用官方 Google Gemini API 需要免费的 API 密钥
+                  </p>
+                  <a 
+                    href="https://aistudio.google.com/app/apikey" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-blue-700 hover:text-blue-900 underline font-medium"
+                  >
+                    🌐 前往 Google AI Studio 获取免费 API 密钥
+                    <span className="text-xs">↗</span>
+                  </a>
+                  <p className="text-xs text-gray-500 mt-1">
+                    * 完全免费，每分钟15次请求限制
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -321,13 +351,19 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
               请输入你的 Google Gemini API 密钥以使用官方服务
             </p>
             <input
-              type="password"
-              placeholder="sk-..."
+              type="text"
+              placeholder="AIza... (输入你的Google API密钥)"
               value={tempApiKey}
               onChange={(e) => setTempApiKey(e.target.value)}
               className="anime-input w-full mb-4"
               autoFocus
             />
+            <div className="mb-4 p-2 bg-blue-50 rounded text-xs text-blue-600">
+              💡 没有API密钥？
+              <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800 ml-1">
+                点击这里免费获取
+              </a>
+            </div>
             <div className="flex space-x-3">
               <button
                 onClick={handleApiKeySubmit}
