@@ -31,7 +31,7 @@ const isCustomEndpoint = () => {
   return config.baseUrl && !config.baseUrl.includes('googleapis.com');
 };
 
-let ai: GoogleGenAI;
+let ai: GoogleGenAI | null = null;
 
 // 初始化 AI 实例
 const initializeAI = () => {
@@ -41,10 +41,13 @@ const initializeAI = () => {
   
   if (config.type === 'official' && config.apiKey) {
     ai = new GoogleGenAI(config.apiKey);
+  } else {
+    ai = null; // 不使用官方API时不初始化
   }
 };
 
-initializeAI();
+// 延迟初始化，避免在模块加载时就要求API密钥
+// initializeAI();
 
 // 自定义 API 调用函数
 async function callCustomGeminiAPI(
@@ -195,6 +198,10 @@ export async function editImage(
   
   // 重新初始化AI实例以使用最新配置
   initializeAI();
+  
+  if (!ai) {
+    throw new Error('AI实例初始化失败，请检查API密钥配置');
+  }
 
   // 原有的 Google GenAI 逻辑
   try {
@@ -311,6 +318,10 @@ export async function generateVideo(
     
     // 重新初始化AI实例以使用最新配置
     initializeAI();
+    
+    if (!ai) {
+        throw new Error('AI实例初始化失败，请检查API密钥配置');
+    }
 
     // 原有的 Google GenAI 视频生成逻辑
     try {

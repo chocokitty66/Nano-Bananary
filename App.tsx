@@ -456,6 +456,16 @@ const App: React.FC = () => {
             🍌 {t('app.title')} ✨
           </h1>
           <div className="flex items-center gap-2 md:gap-4">
+            <a
+              href="https://github.com/chocokitty66/Violet-Bananary"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold hover:scale-105 transition-transform"
+              title="项目地址"
+            >
+              <span className="anime-icon">📁</span>
+              <span className="hidden sm:inline">项目</span>
+            </a>
             <button
               onClick={toggleHistoryPanel}
               className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold"
