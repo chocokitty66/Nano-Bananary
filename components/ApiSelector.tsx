@@ -119,138 +119,155 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
 
   return (
     <>
-      <div className="relative" style={{zIndex: 9998}}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="anime-api-selector flex items-center space-x-3 px-4 py-3 transition-all duration-300 hover:scale-105"
-          title="API 配置"
-        >
-          <span className="anime-icon text-lg">🎯</span>
-          <div className="flex flex-col items-start">
-            <span className="text-sm font-bold text-blue-600">API 服务</span>
-            <span className="text-xs text-blue-400">{selectedApi.name}</span>
-          </div>
-          <svg
-            className={`w-5 h-5 transition-transform duration-300 text-blue-500 ${isOpen ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+      {/* API选择器按钮 */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="anime-button flex items-center gap-2 py-2 px-4 text-sm font-semibold"
+        title="API 配置"
+      >
+        <span className="anime-icon">🎯</span>
+        <span className="hidden sm:inline">API</span>
+      </button>
 
-        {isOpen && (
-          <div className="absolute right-0 mt-3 w-[420px] anime-card p-6" style={{zIndex: 9999}}>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="anime-title text-xl font-bold">🎮 API 服务配置</h3>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="anime-icon text-gray-400 hover:text-red-400 text-xl"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {DEFAULT_APIS.map((api) => (
-                <div key={api.id} className="anime-card p-4 border-2 border-blue-200 hover:border-blue-400">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <span className="anime-icon text-xl">{getStatusIcon(api)}</span>
-                      <div>
-                        <span className="font-bold text-gray-800">{api.name}</span>
-                        <span className={`ml-2 text-xs ${getStatusColor(api)}`}>
-                          {api.id === selectedApi.id ? '当前使用' : ''}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleApiSelect(api)}
-                      className="anime-button px-4 py-2 text-sm"
-                    >
-                      {api.id === selectedApi.id ? '✨ 使用中' : '🚀 选择'}
-                    </button>
+      {/* 侧边栏面板 */}
+      {isOpen && (
+        <>
+          {/* 背景遮罩 */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* 侧边栏内容 */}
+          <div className="fixed top-0 right-0 h-full w-96 anime-card z-50 overflow-y-auto">
+            <div className="p-6">
+              {/* 头部 */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="anime-title text-2xl font-bold">🎮 API 服务配置</h2>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="anime-icon text-gray-400 hover:text-red-400 text-2xl transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 当前使用的API */}
+              <div className="mb-6 p-4 anime-card border-2 border-green-300">
+                <h3 className="text-lg font-semibold mb-2 text-green-600">✨ 当前使用</h3>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-2xl">{getStatusIcon(selectedApi)}</span>
+                  <div>
+                    <div className="font-bold text-gray-800">{selectedApi.name}</div>
+                    <div className="text-sm text-gray-600">{selectedApi.description}</div>
                   </div>
-                  
-                  <p className="text-sm text-gray-600 mb-3">{api.description}</p>
-                  
-                  {api.id === 'custom' ? (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        placeholder="🌐 API 基础 URL (例: https://api.example.com)"
-                        value={customConfig.baseUrl}
-                        onChange={(e) => handleCustomConfigChange('baseUrl', e.target.value)}
-                        className="anime-input w-full"
-                      />
-                      <input
-                        type="password"
-                        placeholder="🔑 API 密钥"
-                        value={customConfig.apiKey}
-                        onChange={(e) => handleCustomConfigChange('apiKey', e.target.value)}
-                        className="anime-input w-full"
-                      />
-                      <input
-                        type="text"
-                        placeholder="📝 服务名称 (可选)"
-                        value={customConfig.name}
-                        onChange={(e) => handleCustomConfigChange('name', e.target.value)}
-                        className="anime-input w-full"
-                      />
-                    </div>
-                  ) : api.id === 'official' ? (
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded">
-                        🌐 {api.baseUrl}
+                </div>
+                <div className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded mt-2">
+                  🌐 {selectedApi.baseUrl}
+                </div>
+                {selectedApi.id === 'official' && (
+                  <input
+                    type="password"
+                    placeholder="🔑 输入你的 Google API 密钥"
+                    value={selectedApi.apiKey}
+                    onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
+                    className="anime-input w-full mt-3"
+                  />
+                )}
+              </div>
+
+              {/* API选项列表 */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-blue-600">🔧 可用服务</h3>
+                
+                {DEFAULT_APIS.map((api) => (
+                  <div key={api.id} className="anime-card p-4 border-2 border-blue-200 hover:border-blue-400 transition-colors">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="anime-icon text-xl">{getStatusIcon(api)}</span>
+                        <div>
+                          <span className="font-bold text-gray-800">{api.name}</span>
+                          <span className={`ml-2 text-xs ${getStatusColor(api)}`}>
+                            {api.id === selectedApi.id ? '使用中' : ''}
+                          </span>
+                        </div>
                       </div>
-                      {selectedApi.id === 'official' && (
+                      <button
+                        onClick={() => handleApiSelect(api)}
+                        disabled={api.id === selectedApi.id}
+                        className="anime-button px-4 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {api.id === selectedApi.id ? '✨ 使用中' : '🚀 选择'}
+                      </button>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-3">{api.description}</p>
+                    
+                    {api.id === 'custom' ? (
+                      <div className="space-y-3">
                         <input
-                          type="password"
-                          placeholder="🔑 输入你的 Google API 密钥"
-                          value={selectedApi.apiKey}
-                          onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
+                          type="text"
+                          placeholder="🌐 API 基础 URL (例: https://api.example.com)"
+                          value={customConfig.baseUrl}
+                          onChange={(e) => handleCustomConfigChange('baseUrl', e.target.value)}
                           className="anime-input w-full"
                         />
-                      )}
-                      {api.type === 'official' && !selectedApi.apiKey && selectedApi.id === 'official' && (
-                        <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
-                          ⚠️ 需要配置 API 密钥才能使用
+                        <input
+                          type="password"
+                          placeholder="🔑 API 密钥"
+                          value={customConfig.apiKey}
+                          onChange={(e) => handleCustomConfigChange('apiKey', e.target.value)}
+                          className="anime-input w-full"
+                        />
+                        <input
+                          type="text"
+                          placeholder="📝 服务名称 (可选)"
+                          value={customConfig.name}
+                          onChange={(e) => handleCustomConfigChange('name', e.target.value)}
+                          className="anime-input w-full"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded">
+                          🌐 {api.baseUrl}
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="text-xs text-gray-500 font-mono bg-gray-100 p-2 rounded">
-                        🌐 {api.baseUrl}
+                        {api.type === 'official' && api.id !== selectedApi.id && (
+                          <div className="text-xs text-yellow-600 bg-yellow-50 p-2 rounded">
+                            ⚠️ 需要配置 API 密钥才能使用
+                          </div>
+                        )}
+                        {api.type === 'proxy' && (
+                          <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                            ✅ 已配置完成，可直接使用
+                          </div>
+                        )}
                       </div>
-                      <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                        ✅ 已配置完成，可直接使用
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                    )}
+                  </div>
+                ))}
+              </div>
 
-            <div className="mt-6 pt-4 border-t border-blue-200">
-              <div className="text-xs text-gray-500 space-y-2">
-                <p className="flex items-center"><span className="anime-icon mr-2">💡</span>使用提示：</p>
-                <ul className="list-none space-y-1 ml-6">
-                  <li>🌟 官方 API 需要 Google API 密钥</li>
-                  <li>🚀 推荐代理服务开箱即用，无需配置</li>
-                  <li>⚙️ 自定义配置支持任何兼容的 Gemini API</li>
-                  <li>🔒 所有配置都保存在本地，确保隐私安全</li>
-                </ul>
+              {/* 使用提示 */}
+              <div className="mt-6 pt-4 border-t border-blue-200">
+                <div className="text-xs text-gray-500 space-y-2">
+                  <p className="flex items-center"><span className="anime-icon mr-2">💡</span>使用提示：</p>
+                  <ul className="list-none space-y-1 ml-6">
+                    <li>🌟 官方 API 需要 Google API 密钥</li>
+                    <li>🚀 推荐代理服务开箱即用，无需配置</li>
+                    <li>⚙️ 自定义配置支持任何兼容的 Gemini API</li>
+                    <li>🔒 所有配置都保存在本地，确保隐私安全</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       {/* API Key 输入弹窗 */}
       {showApiKeyInput && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{zIndex: 10000}}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
           <div className="anime-card p-8 max-w-md w-full mx-4">
             <h3 className="anime-title text-xl font-bold mb-4">🔑 输入 API 密钥</h3>
             <p className="text-sm text-gray-600 mb-4">
