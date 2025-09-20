@@ -8,6 +8,8 @@ export interface ApiConfig {
   apiKey: string;
   type: 'official' | 'custom' | 'proxy';
   description: string;
+  expiresAt?: number; // 过期时间戳
+  duration?: number; // 有效期（小时）
 }
 
 const DEFAULT_APIS: ApiConfig[] = [
@@ -47,7 +49,19 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
   const [selectedApi, setSelectedApi] = useState<ApiConfig>(() => {
     try {
       const saved = localStorage.getItem('selectedApi');
-      return saved ? JSON.parse(saved) : DEFAULT_APIS[1]; // 默认使用自定义代理
+      if (saved) {
+        const config = JSON.parse(saved);
+        // 检查API key是否过期
+        if (config.expiresAt && Date.now() > config.expiresAt) {
+          console.log('API key has expired, clearing...');
+          // 清除过期的API key
+          const clearedConfig = { ...config, apiKey: '', expiresAt: undefined, duration: undefined };
+          localStorage.setItem('selectedApi', JSON.stringify(clearedConfig));
+          return clearedConfig;
+        }
+        return config;
+      }
+      return DEFAULT_APIS[1]; // 默认使用自定义代理
     } catch {
       return DEFAULT_APIS[1];
     }
@@ -62,6 +76,7 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
   });
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [tempApiKey, setTempApiKey] = useState('');
+  const [selectedDuration, setSelectedDuration] = useState<number>(24); // 默认24小时
 
   useEffect(() => {
     localStorage.setItem('selectedApi', JSON.stringify(selectedApi));
@@ -104,16 +119,33 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
 
   const handleApiKeySubmit = () => {
     if (tempApiKey.trim()) {
-      const updatedApi = { ...DEFAULT_APIS[0], apiKey: tempApiKey.trim() };
+      const expiresAt = selectedDuration > 0 ? Date.now() + (selectedDuration * 60 * 60 * 1000) : undefined;
+      const updatedApi = { 
+        ...DEFAULT_APIS[0], 
+        apiKey: tempApiKey.trim(),
+        expiresAt,
+        duration: selectedDuration > 0 ? selectedDuration : undefined
+      };
       setSelectedApi(updatedApi);
       setShowApiKeyInput(false);
       setTempApiKey('');
+      setSelectedDuration(24);
     }
   };
 
   const handleQuickApiKeyChange = (apiId: string, newApiKey: string) => {
     if (selectedApi.id === apiId) {
-      const updatedApi = { ...selectedApi, apiKey: newApiKey };
+      // 如果是新输入的key，设置默认24小时有效期
+      const isNewKey = newApiKey !== selectedApi.apiKey && newApiKey.trim() !== '';
+      const expiresAt = isNewKey ? Date.now() + (24 * 60 * 60 * 1000) : selectedApi.expiresAt;
+      const duration = isNewKey ? 24 : selectedApi.duration;
+      
+      const updatedApi = { 
+        ...selectedApi, 
+        apiKey: newApiKey,
+        expiresAt: newApiKey.trim() === '' ? undefined : expiresAt,
+        duration: newApiKey.trim() === '' ? undefined : duration
+      };
       setSelectedApi(updatedApi);
     }
   };
@@ -137,6 +169,32 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
     if (api.type === 'official' && !api.apiKey) return '🔑';
     return '💫';
   };
+
+  const formatExpiryTime = (expiresAt?: number) => {
+    if (!expiresAt) return null;
+    const now = Date.now();
+    const timeLeft = expiresAt - now;
+    
+    if (timeLeft <= 0) return '已过期';
+    
+    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}小时${minutes > 0 ? minutes + '分钟' : ''}后过期`;
+    } else {
+      return `${minutes}分钟后过期`;
+    }
+  };
+
+  const DURATION_OPTIONS = [
+    { value: 1, label: '1小时' },
+    { value: 6, label: '6小时' },
+    { value: 24, label: '1天' },
+    { value: 168, label: '1周' },
+    { value: 720, label: '1个月' },
+    { value: 0, label: '永不过期' }
+  ];
 
   return (
     <>
@@ -191,6 +249,11 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
                       onChange={(e) => handleQuickApiKeyChange('official', e.target.value)}
                       className="anime-input w-full"
                     />
+                    {selectedApi.expiresAt && (
+                      <div className="mt-2 p-2 bg-yellow-50 rounded text-xs">
+                        <span className="text-yellow-600">⏰ {formatExpiryTime(selectedApi.expiresAt)}</span>
+                      </div>
+                    )}
                     <p className="text-xs text-blue-600 mt-1">
                       💡 没有API密钥？<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800">点击这里获取免费的Google API密钥</a>
                     </p>
@@ -358,6 +421,31 @@ const ApiSelector: React.FC<ApiSelectorProps> = ({ onApiChange }) => {
               className="anime-input w-full mb-4"
               autoFocus
             />
+            
+            {/* 有效期选择 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">⏰ API密钥有效期</label>
+              <div className="grid grid-cols-2 gap-2">
+                {DURATION_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSelectedDuration(option.value)}
+                    className={`anime-button py-2 px-3 text-xs ${
+                      selectedDuration === option.value ? 'rainbow-glow' : ''
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {selectedDuration === 0 
+                  ? '⚠️ 密钥将永久保存，直到手动清除' 
+                  : `🔒 密钥将在${DURATION_OPTIONS.find(o => o.value === selectedDuration)?.label}后自动清除`
+                }
+              </p>
+            </div>
+            
             <div className="mb-4 p-2 bg-blue-50 rounded text-xs text-blue-600">
               💡 没有API密钥？
               <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-800 ml-1">
