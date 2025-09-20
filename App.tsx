@@ -446,7 +446,7 @@ const App: React.FC = () => {
       </div>
 
       <header className="anime-card sticky top-0 z-10 p-4 border-b-2 border-blue-200">
-        <div className="container mx-auto flex justify-between items-center">
+        <div className="container mx-auto flex justify-between items-center relative">
           <h1 
             className="anime-title text-3xl font-bold tracking-tight cursor-pointer heartbeat" 
             onClick={handleResetApp}
