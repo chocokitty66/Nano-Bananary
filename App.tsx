@@ -445,7 +445,7 @@ const App: React.FC = () => {
         <div className="anime-particle" style={{left: '90%'}}></div>
       </div>
 
-      <header className="anime-card sticky top-0 z-20 p-4 border-b-2 border-blue-200">
+      <header className="anime-card sticky top-0 z-10 p-4 border-b-2 border-blue-200">
         <div className="container mx-auto flex justify-between items-center">
           <h1 
             className="anime-title text-3xl font-bold tracking-tight cursor-pointer heartbeat" 

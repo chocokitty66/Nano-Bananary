@@ -181,12 +181,15 @@ body::before {
   border-radius: 20px;
   box-shadow: var(--shadow-medium);
   transition: all var(--animation-speed) var(--animation-curve);
+  position: relative;
+  z-index: 50;
 }
 
 .anime-api-selector:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-strong);
   border-color: rgba(74, 144, 226, 0.5);
+  z-index: 60;
 }
 
 .anime-input {
