@@ -5,21 +5,49 @@ if (!process.env.API_KEY) {
   throw new Error("API_KEY environment variable is not set.");
 }
 
+// 获取当前 API 配置
+const getCurrentApiConfig = () => {
+  try {
+    const saved = localStorage.getItem('selectedApi');
+    if (saved) {
+      const config = JSON.parse(saved);
+      return {
+        baseUrl: config.baseUrl || process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
+        apiKey: config.apiKey || process.env.GEMINI_API_KEY || 'sk-chocokitty',
+        type: config.type || 'proxy'
+      };
+    }
+  } catch (e) {
+    console.error('Failed to get API config from localStorage:', e);
+  }
+  
+  // 默认配置
+  return {
+    baseUrl: process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com',
+    apiKey: process.env.GEMINI_API_KEY || 'sk-chocokitty',
+    type: 'proxy'
+  };
+};
+
 // 检查是否使用自定义 API 端点
-const isCustomEndpoint = process.env.GEMINI_API_BASE_URL && 
-  process.env.GEMINI_API_BASE_URL !== 'https://generativelanguage.googleapis.com';
+const isCustomEndpoint = () => {
+  const config = getCurrentApiConfig();
+  return config.baseUrl && !config.baseUrl.includes('googleapis.com');
+};
 
 const API_KEY = process.env.API_KEY;
 const BASE_URL = process.env.GEMINI_API_BASE_URL || 'https://yqdkzwnuarth.eu-central-1.clawcloudrun.com';
 
 let ai: GoogleGenAI;
 
-if (isCustomEndpoint) {
-  console.log('Using custom Gemini API endpoint:', BASE_URL);
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-} else {
-  ai = new GoogleGenAI({ apiKey: API_KEY });
-}
+// 初始化 AI 实例
+const initializeAI = () => {
+  const config = getCurrentApiConfig();
+  console.log('Using API endpoint:', config.baseUrl);
+  ai = new GoogleGenAI({ apiKey: config.apiKey });
+};
+
+initializeAI();
 
 // 自定义 API 调用函数
 async function callCustomGeminiAPI(
@@ -68,12 +96,13 @@ async function callCustomGeminiAPI(
       }
     };
 
-    const response = await fetch(`${BASE_URL}/v1beta/models/gemini-2.5-flash-image-preview:generateContent`, {
+    const config = getCurrentApiConfig();
+    const response = await fetch(`${config.baseUrl}/v1beta/models/gemini-2.5-flash-image-preview:generateContent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`,
-        'x-goog-api-key': API_KEY,
+        'Authorization': `Bearer ${config.apiKey}`,
+        'x-goog-api-key': config.apiKey,
       },
       body: JSON.stringify(requestBody),
     });
@@ -133,7 +162,7 @@ export async function editImage(
     secondaryImage: { base64: string; mimeType: string } | null
 ): Promise<GeneratedContent> {
   // 如果使用自定义端点，使用自定义 API 调用
-  if (isCustomEndpoint) {
+  if (isCustomEndpoint()) {
     return callCustomGeminiAPI(base64ImageData, mimeType, prompt, maskBase64, secondaryImage);
   }
 
@@ -239,7 +268,7 @@ export async function generateVideo(
     onProgress: (message: string) => void
 ): Promise<string> {
     // 如果使用自定义端点，使用自定义视频 API
-    if (isCustomEndpoint) {
+    if (isCustomEndpoint()) {
         return callCustomVideoAPI(prompt, image, aspectRatio, onProgress);
     }
 

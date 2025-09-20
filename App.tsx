@@ -14,6 +14,7 @@ import HistoryPanel from './components/HistoryPanel';
 import { useTranslation } from './i18n/context';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import ThemeSwitcher from './components/ThemeSwitcher';
+import ApiSelector, { ApiConfig } from './components/ApiSelector';
 
 type ActiveTool = 'mask' | 'none';
 
@@ -58,6 +59,7 @@ const App: React.FC = () => {
   const [history, setHistory] = useState<GeneratedContent[]>([]);
   const [isHistoryPanelOpen, setIsHistoryPanelOpen] = useState<boolean>(false);
   const [activeCategory, setActiveCategory] = useState<Transformation | null>(null);
+  const [currentApiConfig, setCurrentApiConfig] = useState<ApiConfig | null>(null);
   
   useEffect(() => {
     try {
@@ -453,6 +455,7 @@ const App: React.FC = () => {
               </svg>
               <span className="hidden sm:inline">{t('app.history')}</span>
             </button>
+            <ApiSelector onApiChange={setCurrentApiConfig} />
             <LanguageSwitcher />
             <ThemeSwitcher />
           </div>
